@@ -45,8 +45,25 @@ CREATE TABLE IF NOT EXISTS observations (
 
     PRIMARY KEY (series_id, ref_period_start, vintage_date),
 
-    -- A period cannot be described before it has ended.
-    CONSTRAINT vintage_after_period CHECK (vintage_date >= ref_period_end),
+    -- A period cannot be described before it has BEGUN.
+    --
+    -- This said `>= ref_period_end` until 2026-08-30, on the reasoning that a
+    -- period cannot be described before it has ended. That is false, and the
+    -- archive says so: on 1961-08-29 the BLS published the August 1961
+    -- unemployment rate and payroll count, two days before August ended. The
+    -- household survey references the week containing the 12th, not the whole
+    -- month, so in that era the figure was complete while the month was not.
+    --
+    -- Exactly 2 rows of 65,057 across the five preregistered series are
+    -- affected, both from that one release. Neither predates its period's
+    -- start, and no other series has a row that violates either form.
+    --
+    -- The guarantee is therefore weaker and still real: a value cannot be
+    -- recorded for a period that has not begun, so the cheapest fake -- dating
+    -- a real-time result before the evidence could exist -- stays unavailable.
+    -- What it no longer catches is a vintage inside its own reference period,
+    -- which for survey-based series is a thing that genuinely happens.
+    CONSTRAINT vintage_after_period_start CHECK (vintage_date >= ref_period_start),
     CONSTRAINT period_ordered       CHECK (ref_period_end >= ref_period_start)
 );
 

@@ -44,7 +44,7 @@ def run_id(conn):
     That is not hypothetical. Until 2026-08-30 the backdating test took its
     `ingest_run_id` from `(SELECT run_id FROM ingest_runs LIMIT 1)`, which was
     NULL on an empty table, and the insert died on NOT NULL before Postgres ever
-    evaluated `CHECK (vintage_date >= ref_period_end)`. The test failed, and the
+    evaluated the `vintage_after_period` CHECK. The test failed, and the
     constraint it exists to exercise had never once been exercised. See
     METHODS.md.
 
@@ -88,24 +88,41 @@ INSERT = (
 JANUARY = (dt.date(2020, 1, 1), dt.date(2020, 1, 31))
 
 
-def test_a_period_cannot_be_described_before_it_ends(conn, run_id):
-    """The CHECK constraint that makes backdating the cheapest fake unavailable."""
+def test_a_period_cannot_be_described_before_it_begins(conn, run_id):
+    """The CHECK constraint that makes backdating the cheapest fake unavailable.
+
+    Dating a real-time result before the evidence could possibly exist is the
+    cheapest way to fake one, and this is what makes it unavailable.
+    """
     with conn.cursor() as cur, pytest.raises(psycopg.errors.CheckViolation):
-        cur.execute(INSERT, (*JANUARY, dt.date(2020, 1, 15), run_id))
+        cur.execute(INSERT, (*JANUARY, dt.date(2019, 12, 15), run_id))
     conn.rollback()
 
 
-def test_the_same_row_is_accepted_once_the_period_has_ended(conn, run_id):
-    """The positive control, without which the test above proves nothing.
+@pytest.mark.parametrize(
+    "vintage,why",
+    [
+        (dt.date(2020, 2, 7), "the ordinary case: published after the month ended"),
+        (dt.date(2020, 1, 29), "published inside its own reference month"),
+        (dt.date(2020, 1, 1), "published on the first day of the period"),
+    ],
+)
+def test_rows_the_check_must_admit(conn, run_id, vintage, why):
+    """The positive controls, without which the test above proves nothing.
 
     A row rejected for some unrelated reason -- a missing foreign key, a null
     column -- looks exactly like a row the CHECK caught, and for months one did.
-    So the identical insert is attempted with a vintage date after the period
-    ends, and it must succeed. Only then does the rejection above belong to
-    `CHECK (vintage_date >= ref_period_end)` rather than to anything else.
+    Only a passing insert makes the rejection above attributable.
+
+    The middle case is not hypothetical and is the reason the constraint was
+    relaxed on 2026-08-30: on 1961-08-29 the BLS published August 1961's
+    unemployment rate and payroll count while August was still running, because
+    the household survey references the week containing the 12th rather than the
+    whole month. The stricter constraint rejected both rows and stopped the
+    entire ingest. See db/schema.sql and METHODS.md.
     """
     with conn.cursor() as cur:
-        cur.execute(INSERT, (*JANUARY, dt.date(2020, 2, 7), run_id))
+        cur.execute(INSERT, (*JANUARY, vintage, run_id))
     conn.rollback()
 
 

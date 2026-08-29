@@ -73,7 +73,7 @@ clear was written down first.
 |---|---|
 | **A restatement is a new row.** The schema has no column to overwrite; `(series, period, vintage)` is the primary key | A store where "we kept the old value" is a promise made by careful code |
 | **The writer role holds `INSERT` and nothing else** — by `REVOKE`, not convention. `tests/test_append_only.py` connects as that role and asserts `UPDATE` raises | An append-only claim nobody ever tried to violate |
-| **`CHECK (vintage_date >= ref_period_end)`** | Backdating — the cheapest way to fake a real-time result |
+| **`CHECK (vintage_date >= ref_period_start)`** | Backdating — dating a real-time result before the evidence could exist. It read `>= ref_period_end` until the archive proved that wrong: BLS published August 1961 two days before August ended |
 | **Gates before findings.** Both validation gates must pass before the primary outcome is computed at all | A robustness check run afterwards, on a result someone already likes |
 | **A fixed random seed for the Gate 1 sample** | Redrawing the sample until it passes |
 | **Constants asserted against the preregistration by the test suite** | A document that states one threshold while the code uses another |

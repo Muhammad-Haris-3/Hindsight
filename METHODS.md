@@ -12,24 +12,30 @@ procedure and buries the exclusions is an advertisement.
    covers but is not guaranteed to be the moment a human could have acted. Any
    decision taken intraday on release day is outside what this method can see.
 
-2. **Vintage granularity is daily.** Two revisions on the same day are one row.
+2. **A reference period is not the interval the evidence covers.** For the
+   labour-force series the survey references the week containing the 12th, so a
+   monthly figure can be — and in 1961 was — published before its month ended.
+   `ref_period_end` is a calendar fact, not a statement about when the
+   information became complete, and nothing here treats it as one.
+
+3. **Vintage granularity is daily.** Two revisions on the same day are one row.
    For monthly macro series this has no effect; for the GB settlement extension
    it does, and the run label is carried explicitly for that reason.
 
-3. **The GB extension cannot be validated the way the US series can.** No public
+4. **The GB extension cannot be validated the way the US series can.** No public
    vintage archive exists for it. That is why it is an extension: the method is
    marked where marking is possible, then applied where it is not. Any GB result
    inherits the uncertainty of an unmarked method and is labelled as such.
 
-4. **`RSAFS` is a control, not a placebo.** It is expected to revise little at
+5. **`RSAFS` is a control, not a placebo.** It is expected to revise little at
    these horizons. If it revises as much as `PAYEMS`, the most likely explanation
    is a bug in us, and that is the reading that will be published.
 
-5. **The pandemic period is excluded from the primary window** and reported
+6. **The pandemic period is excluded from the primary window** and reported
    separately. Pooling it would let one episode carry the headline. This was
    fixed in `PREREGISTRATION.md`, not chosen after seeing the counts.
 
-6. **A flip is not a mistake.** It is a decision that would have gone differently
+7. **A flip is not a mistake.** It is a decision that would have gone differently
    on different evidence. Nothing here establishes which evidence was better.
 
 ---
@@ -357,6 +363,7 @@ for it. It does not appear in `DECISION_MEMO.md`.
 | 2026-08-30 | Gate 1's premise recorded honestly: the run in `gates.json` read intervals from the API, not the store, so it tested the joins and not the storage. `src/hindsight/store.py` reads the archive back out of the append-only rows, `run_gates.py` records `intervals_from`, and the round trip is checked offline and against the live archive. See *What Gate 1 did and did not test*. |
 | 2026-08-30 | Diagnosis run: the Gate 2 / Gate 2b failure split is the BLS annual seasonal-adjustment release calendar, 3/3 and 25/25 with no unexplained failure. Changes no verdict; the primary outcome remains uncomputed. |
 | 2026-08-30 | Gates re-run against a freshly downloaded archive, four days after the first run. Every verdict, every failing month and every difference reproduced exactly: Gate 1 0/111,948, Gate 2 3/528, Gate 2b 25/528, worst \|diff\| unchanged. `intervals_from` is `alfred-api` in this run, for the reason recorded above. |
+| 2026-08-30 | **A period *can* be described before it has ended, and the archive says so.** The first ingest ever attempted — it needed Postgres and a live key together, which had never coincided — died on `CHECK (vintage_date >= ref_period_end)`. The offending row was real: on **1961-08-29 the BLS published the August 1961 unemployment rate and payroll count, two days before August ended**. The household survey references the week containing the 12th, not the whole month, so the figure was complete while the period was not. Exactly **2 rows of 65,057** across the five preregistered series are affected, both from that one release, and neither predates its period's *start*. The constraint is now `vintage_date >= ref_period_start`. The guarantee is weaker and still real — a value cannot be recorded for a period that has not begun, so dating a real-time result before the evidence could exist stays impossible — but it no longer catches a vintage inside its own reference period, which for survey-based series genuinely happens. Excluding the two rows instead was rejected: a gap in collection created by us is the one thing METHODS says must never read as a period nobody revised. Both rows are outside the 1976–2019 window and cannot affect the primary outcome. |
 | 2026-08-30 | **The backdating guard had never been exercised.** `tests/test_append_only.py::test_a_period_cannot_be_described_before_it_ends` took its `ingest_run_id` from `(SELECT run_id FROM ingest_runs LIMIT 1)`. That table is empty when the append-only step runs — it runs before the first ingest by design — so the subselect returned NULL and the insert died on NOT NULL *before Postgres evaluated* `CHECK (vintage_date >= ref_period_end)`. The README lists that CHECK against "backdating — the cheapest way to fake a real-time result"; it may well work, but nothing had shown that it does. The test now seeds its own `series` and `ingest_runs` rows, and a positive control asserts the identical insert succeeds once the period has ended, so a rejection can be attributed to the CHECK rather than to anything else. Found only after the first push to CI, because the module skips without a DSN and every local run had been green. |
 | 2026-08-30 | Two defects in the CI step that was supposed to catch the above. `pytest \| tee gate.log` returned `tee`'s exit status under `bash -e`, so a failing append-only test did not fail the job — the step went red only because an unrelated skip-guard fired. `set -o pipefail` added. The skip-guard itself matched the word "skipped" anywhere in the output, including the summary count, so a test skipping by design was indistinguishable from the DSN being absent; it is now anchored to pytest's own `SKIPPED` lines, and `test_the_same_vintage_cannot_be_appended_twice` no longer skips at all, having been made self-sufficient rather than dependent on a prior ingest. |
 | 2026-08-30 | Every script forced its output stream to UTF-8. On a Windows console `scripts/smoke.py` crashed part-way through on an em dash, turning a diagnostic that had passed five checks into a traceback with no verdict. A check that cannot print is a check that did not run. |

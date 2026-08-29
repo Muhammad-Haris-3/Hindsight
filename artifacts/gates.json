@@ -1,0 +1,228 @@
+{
+  "freeze_date": "2026-09-01",
+  "intervals_from": "alfred-api",
+  "results": [
+    {
+      "gate": "capture_faithful",
+      "passed": true,
+      "post_hoc": false,
+      "n_checked": 111948,
+      "n_failed": 0,
+      "max_abs_diff": "0.0",
+      "failures": []
+    },
+    {
+      "gate": "rule_reproduces",
+      "passed": false,
+      "post_hoc": false,
+      "n_checked": 528,
+      "n_failed": 3,
+      "max_abs_diff": "0.20",
+      "failures": [
+        {
+          "month": "1976-12-01",
+          "ours": "0.53",
+          "theirs": "0.47",
+          "diff": "0.06"
+        },
+        {
+          "month": "1977-12-01",
+          "ours": "-0.17",
+          "theirs": "-0.13",
+          "diff": "0.04"
+        },
+        {
+          "month": "1981-12-01",
+          "ours": "1.27",
+          "theirs": "1.07",
+          "diff": "0.20"
+        }
+      ]
+    },
+    {
+      "gate": "rule_reproduces_offset",
+      "passed": false,
+      "post_hoc": true,
+      "n_checked": 528,
+      "n_failed": 25,
+      "max_abs_diff": "0.10",
+      "failures": [
+        {
+          "month": "1979-11-01",
+          "vintage_used": "1980-01-11",
+          "ours": "0.10",
+          "theirs": "0.17",
+          "diff": "0.07"
+        },
+        {
+          "month": "1980-11-01",
+          "vintage_used": "1981-01-09",
+          "ours": "1.63",
+          "theirs": "1.7",
+          "diff": "0.07"
+        },
+        {
+          "month": "1982-11-01",
+          "vintage_used": "1983-01-07",
+          "ours": "2.50",
+          "theirs": "2.47",
+          "diff": "0.03"
+        },
+        {
+          "month": "1984-11-01",
+          "vintage_used": "1985-01-09",
+          "ours": "-0.13",
+          "theirs": "-0.03",
+          "diff": "0.10"
+        },
+        {
+          "month": "1985-11-01",
+          "vintage_used": "1986-01-08",
+          "ours": "-0.03",
+          "theirs": "0.0",
+          "diff": "0.03"
+        },
+        {
+          "month": "1986-11-01",
+          "vintage_used": "1987-01-09",
+          "ours": "0.03",
+          "theirs": "0.13",
+          "diff": "0.10"
+        },
+        {
+          "month": "1989-11-01",
+          "vintage_used": "1990-01-05",
+          "ours": "0.13",
+          "theirs": "0.2",
+          "diff": "0.07"
+        },
+        {
+          "month": "1990-11-01",
+          "vintage_used": "1991-01-04",
+          "ours": "0.47",
+          "theirs": "0.5",
+          "diff": "0.03"
+        },
+        {
+          "month": "1991-11-01",
+          "vintage_used": "1992-01-10",
+          "ours": "1.03",
+          "theirs": "1.0",
+          "diff": "0.03"
+        },
+        {
+          "month": "1992-11-01",
+          "vintage_used": "1993-01-08",
+          "ours": "0.53",
+          "theirs": "0.5",
+          "diff": "0.03"
+        },
+        {
+          "month": "1993-11-01",
+          "vintage_used": "1994-01-07",
+          "ours": "-0.07",
+          "theirs": "-0.1",
+          "diff": "0.03"
+        },
+        {
+          "month": "1994-11-01",
+          "vintage_used": "1995-01-06",
+          "ours": "-0.13",
+          "theirs": "-0.17",
+          "diff": "0.04"
+        },
+        {
+          "month": "1996-11-01",
+          "vintage_used": "1997-01-10",
+          "ours": "0.03",
+          "theirs": "0.1",
+          "diff": "0.07"
+        },
+        {
+          "month": "1998-11-01",
+          "vintage_used": "1999-01-08",
+          "ours": "0.07",
+          "theirs": "0.17",
+          "diff": "0.10"
+        },
+        {
+          "month": "2001-11-01",
+          "vintage_used": "2002-01-04",
+          "ours": "1.37",
+          "theirs": "1.4",
+          "diff": "0.03"
+        },
+        {
+          "month": "2005-11-01",
+          "vintage_used": "2006-01-06",
+          "ours": "0.03",
+          "theirs": "0.07",
+          "diff": "0.04"
+        },
+        {
+          "month": "2007-11-01",
+          "vintage_used": "2008-01-04",
+          "ours": "0.30",
+          "theirs": "0.23",
+          "diff": "0.07"
+        },
+        {
+          "month": "2008-11-01",
+          "vintage_used": "2009-01-09",
+          "ours": "1.80",
+          "theirs": "1.7",
+          "diff": "0.10"
+        },
+        {
+          "month": "2009-11-01",
+          "vintage_used": "2010-01-08",
+          "ours": "3.40",
+          "theirs": "3.47",
+          "diff": "0.07"
+        },
+        {
+          "month": "2010-11-01",
+          "vintage_used": "2011-01-07",
+          "ours": "0.17",
+          "theirs": "0.13",
+          "diff": "0.04"
+        },
+        {
+          "month": "2011-11-01",
+          "vintage_used": "2012-01-06",
+          "ours": "-0.10",
+          "theirs": "0.0",
+          "diff": "0.10"
+        },
+        {
+          "month": "2012-11-01",
+          "vintage_used": "2013-01-04",
+          "ours": "-0.10",
+          "theirs": "-0.13",
+          "diff": "0.03"
+        },
+        {
+          "month": "2013-11-01",
+          "vintage_used": "2014-01-10",
+          "ours": "-0.07",
+          "theirs": "-0.1",
+          "diff": "0.03"
+        },
+        {
+          "month": "2016-11-01",
+          "vintage_used": "2017-01-06",
+          "ours": "-0.07",
+          "theirs": "0.0",
+          "diff": "0.07"
+        },
+        {
+          "month": "2018-11-01",
+          "vintage_used": "2019-01-04",
+          "ours": "-0.03",
+          "theirs": "-0.07",
+          "diff": "0.04"
+        }
+      ]
+    }
+  ]
+}

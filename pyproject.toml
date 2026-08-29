@@ -1,0 +1,24 @@
+[project]
+name = "hindsight"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["httpx>=0.27"]
+
+[project.optional-dependencies]
+# The driver is only needed by the pipeline. Keeping it out of the base install
+# means the offline suite -- which is all of it except the gates -- runs anywhere.
+db = ["psycopg[binary]>=3.2"]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = ["network: needs a live API key and the internet"]

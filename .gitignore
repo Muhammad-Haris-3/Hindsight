@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.env
+# artifacts/ is TRACKED. gates.json is the record the preregistration binds
+# on -- scripts/outcome.py reads it to decide whether a finding is permitted
+# at all -- so a repository that cannot show it cannot show the gate verdict
+# it claims to be bound by.
+*.egg-info/
+build/
+dist/
+gate.log

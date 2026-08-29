@@ -217,3 +217,63 @@ wrong and neither convention explains it.
 the benchmark's. What was knowable on the day is the question the project asks;
 adopting a convention that sees one release into the future in order to agree
 with somebody else would answer a different one.
+
+### Amendment 3 — 2026-08-30 — the Gate 2b reading, corrected by diagnosis
+
+**Written after both gates had failed and after the diagnosis was run. It is
+post-hoc, like Amendment 2, and it is weaker evidence than anything fixed in
+advance. It changes no verdict, no threshold, no convention and no count.**
+Nothing above the *Amendments* line is edited, and Amendment 2's text stands
+exactly as written.
+
+Amendment 2 fixed a reading in advance, before Gate 2b had run:
+
+> If Gate 2b fails as well, the reading is that something else is wrong and
+> neither convention explains it.
+
+Gate 2b failed. That reading was applied on 2026-08-26 and recorded in
+`METHODS.md` and `DECISION_MEMO.md`. **It is now superseded, and this amendment
+exists so that the supersession is on the record rather than only in the
+document that benefits from it.**
+
+`scripts/diagnose_revision_calendar.py` characterises, for each of the 44
+reference years in the window, which January–March release carried the largest
+restatement of previously published history — the BLS annual seasonal-adjustment
+revision — and which calendar month it landed in. The prediction was written into
+that script before the years were counted, and follows from the release
+arithmetic alone. It holds without exception:
+
+| | |
+|---|---|
+| Gate 2 December failures in **February**-landing years | 3 of 3 |
+| Gate 2b November failures in **January**-landing years | 25 of 25 |
+| Failures unexplained by the landing month | 0 |
+
+In all 44 years the annual revision moved the November gap if and only if Gate 2b
+failed that November, and the December gap if and only if Gate 2 failed that
+December. So the failures are explained — not by a third convention, but by the
+release calendar of the revision itself, which moved between January and
+February across the sample.
+
+Three things are fixed by this amendment:
+
+1. **The correction is to the reading, not to the verdict.** Gate 2 failed and
+   that failure stands, unamended. The primary outcome is still not computed and
+   the GB extension still does not run. Explaining a failure is not passing one,
+   and the preregistration binds on the verdict.
+
+2. **No third convention was written, and none may be.** The diagnosis is enough
+   to say what `SAHMREALTIME`'s December values track, which is enough to build a
+   Gate 2c that would pass. That is precisely why it is forbidden: a rule chosen
+   after seeing which months it fixes is gate-shopping, ruled out in Amendment 2
+   when no such rule was known. The prohibition is reaffirmed here, at the point
+   where it first costs something.
+
+3. **The characterisation is ours, not the publisher's.** It is an inference from
+   the public vintage record. It shows the mixing is systematic and identifies
+   what it tracks; it does not show that FRED constructs the series this way, and
+   nothing in it says the series is wrong. Route 2 of `DECISION_MEMO.md` is
+   therefore advanced and not closed — closing it means asking them.
+
+This amendment fixes no new constant. It corrects a reading, and a reading is not
+a parameter.

@@ -195,6 +195,13 @@ Gate 2 failed. Therefore, as of this run:
   fails as well, the reading is that something else is wrong and neither
   convention explains it."* That is the reading.
 
+> **Superseded 2026-08-30, and left in place.** The diagnosis below explains the
+> failures, so "neither convention explains it" no longer holds. The paragraph
+> above stands as written because it was the reading at the time and this
+> document does not rewrite what it concluded before the evidence arrived; the
+> correction is recorded in `PREREGISTRATION.md`, Amendment 3. What did *not*
+> change is the consequence: Gate 2 failed, and the two bullets above it hold.
+
 What remains available is **diagnosis**, which changes no threshold and gates
 nothing: characterising when the annual revision landed in each year, and whether
 that timing accounts for the November/December split.
@@ -259,7 +266,9 @@ systematic and identifies what it tracks; it does not show that FRED constructs
 the series that way, and nothing here says the series is wrong.
 
 **What this does not change.** Gate 2 still failed, and the preregistration binds
-on the verdict, not on how well the failure is now understood. The primary
+on the verdict, not on how well the failure is now understood. The correction to
+the *reading* is recorded as Amendment 3, which also reaffirms that no Gate 2c
+may be written now that a rule which would pass is actually known. The primary
 outcome is still not computed and the GB extension still does not run. Producing
 an explanation for a failed gate and then treating the explanation as a pass is
 the exact move the gate exists to prevent, and it is more tempting now than it
@@ -439,6 +448,7 @@ for it. It does not appear in `DECISION_MEMO.md`.
 | 2026-08-30 | Gate 1's premise recorded honestly: the run in `gates.json` read intervals from the API, not the store, so it tested the joins and not the storage. `src/hindsight/store.py` reads the archive back out of the append-only rows, `run_gates.py` records `intervals_from`, and the round trip is checked offline and against the live archive. See *What Gate 1 did and did not test*. |
 | 2026-08-30 | Diagnosis run: the Gate 2 / Gate 2b failure split is the BLS annual seasonal-adjustment release calendar, 3/3 and 25/25 with no unexplained failure. Changes no verdict; the primary outcome remains uncomputed. |
 | 2026-08-30 | Gates re-run against a freshly downloaded archive, four days after the first run. Every verdict, every failing month and every difference reproduced exactly: Gate 1 0/111,948, Gate 2 3/528, Gate 2b 25/528, worst \|diff\| unchanged. `intervals_from` is `alfred-api` in this run, for the reason recorded above. |
+| 2026-08-30 | Amendment 3 appended to `PREREGISTRATION.md`. Amendment 2 had fixed a reading in advance — if Gate 2b failed too, "something else is wrong and neither convention explains it" — and the diagnosis superseded it. The correction is recorded in the preregistration rather than only in the documents it suits. No verdict, threshold or convention changes, and the prohibition on a Gate 2c is reaffirmed now that a rule which would pass is actually known. |
 | 2026-08-30 | Six of this project's own guarantees were found to have never been reached in a situation where they could fail — see *The controls that had never run*. No gate verdict, threshold or count changes; Gate 2's failure was reproduced through an entirely different path in the process. Recorded because a document that opens by promising failures first cannot omit its own. |
 | 2026-08-30 | **A period *can* be described before it has ended, and the archive says so.** The first ingest ever attempted — it needed Postgres and a live key together, which had never coincided — died on `CHECK (vintage_date >= ref_period_end)`. The offending row was real: on **1961-08-29 the BLS published the August 1961 unemployment rate and payroll count, two days before August ended**. The household survey references the week containing the 12th, not the whole month, so the figure was complete while the period was not. Exactly **2 rows of 65,057** across the five preregistered series are affected, both from that one release, and neither predates its period's *start*. The constraint is now `vintage_date >= ref_period_start`. The guarantee is weaker and still real — a value cannot be recorded for a period that has not begun, so dating a real-time result before the evidence could exist stays impossible — but it no longer catches a vintage inside its own reference period, which for survey-based series genuinely happens. Excluding the two rows instead was rejected: a gap in collection created by us is the one thing METHODS says must never read as a period nobody revised. Both rows are outside the 1976–2019 window and cannot affect the primary outcome. |
 | 2026-08-30 | **The backdating guard had never been exercised.** `tests/test_append_only.py::test_a_period_cannot_be_described_before_it_ends` took its `ingest_run_id` from `(SELECT run_id FROM ingest_runs LIMIT 1)`. That table is empty when the append-only step runs — it runs before the first ingest by design — so the subselect returned NULL and the insert died on NOT NULL *before Postgres evaluated* `CHECK (vintage_date >= ref_period_end)`. The README lists that CHECK against "backdating — the cheapest way to fake a real-time result"; it may well work, but nothing had shown that it does. The test now seeds its own `series` and `ingest_runs` rows, and a positive control asserts the identical insert succeeds once the period has ended, so a rejection can be attributed to the CHECK rather than to anything else. Found only after the first push to CI, because the module skips without a DSN and every local run had been green. |

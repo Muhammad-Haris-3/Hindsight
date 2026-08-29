@@ -74,6 +74,12 @@ failed check and then treating the explanation as a pass is the exact move the
 check exists to prevent — and it is more tempting now than it was when the
 failure looked arbitrary.
 
+The preregistration had guessed wrong about this in advance. Written before
+either gate ran, it said that if both conventions failed, "something else is
+wrong and neither convention explains it." Something else was not wrong, and the
+calendar does explain it. That correction is recorded in the preregistration
+itself, as Amendment 3, rather than only in the documents it happens to suit.
+
 ## Why that matters beyond this project
 
 `SAHMREALTIME` is not an obscure series. It is the real-time version of a widely

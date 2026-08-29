@@ -77,7 +77,15 @@ jobs:
       - name: Ingest vintages
         run: python scripts/ingest.py
 
+      - name: Discard the checked-out gate record
+        # artifacts/gates.json is tracked, so every checkout carries whichever
+        # machine last ran the gates. This job must be judged on what it
+        # produces and never on what it inherited: without this, the check below
+        # can pass or fail on a file this run never wrote.
+        run: rm -f artifacts/gates.json
+
       - name: Run gates
+        id: gates
         # --source store, not auto. Gate 1 is described in the preregistration as
         # testing "our storage and our joins", which it only does if the intervals
         # came back out of Postgres. `auto` would fall back to the API if the DSN
@@ -89,7 +97,12 @@ jobs:
         # gates.json carries `intervals_from`. If it does not say "store", the
         # storage half of Gate 1's premise went untested and the artifact must
         # not imply otherwise.
-        if: always()
+        #
+        # Runs after a failed gate -- a red verdict is the expected state and its
+        # provenance still matters -- but not after a skipped one. Asserting that
+        # a gate run read from the store when no gate run happened is the exact
+        # kind of claim-without-a-run this field exists to prevent.
+        if: always() && steps.gates.conclusion != 'skipped'
         run: |
           python - <<'PY'
           import json, sys

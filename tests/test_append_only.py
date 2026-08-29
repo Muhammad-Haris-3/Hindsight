@@ -25,6 +25,41 @@ pytestmark = pytest.mark.skipif(not DSN, reason="HINDSIGHT_WRITER_DSN unset")
 def conn():
     with psycopg.connect(DSN) as c:
         yield c
+        # psycopg commits when this block exits cleanly. Nothing these tests
+        # write may ever reach the store the gates read, so the last word is a
+        # rollback rather than whatever the test happened to leave open.
+        c.rollback()
+
+
+@pytest.fixture
+def run_id(conn):
+    """A series row and an ingest run, inside the test's own transaction.
+
+    `observations.ingest_run_id` is NOT NULL and references `ingest_runs`, and
+    `series_id` references `series`. Both tables are empty when this job runs,
+    because the append-only tests deliberately run *before* the first ingest --
+    so a test that does not create its own rows never reaches the constraint it
+    came to check.
+
+    That is not hypothetical. Until 2026-08-30 the backdating test took its
+    `ingest_run_id` from `(SELECT run_id FROM ingest_runs LIMIT 1)`, which was
+    NULL on an empty table, and the insert died on NOT NULL before Postgres ever
+    evaluated `CHECK (vintage_date >= ref_period_end)`. The test failed, and the
+    constraint it exists to exercise had never once been exercised. See
+    METHODS.md.
+
+    Everything seeded here is rolled back; none of it is committed.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO series (series_id, source, title, units, frequency, role)"
+            " VALUES ('UNRATE','alfred','UNRATE','','M','primary')"
+            " ON CONFLICT DO NOTHING"
+        )
+        cur.execute("INSERT INTO ingest_runs (source) VALUES ('test') RETURNING run_id")
+        value = cur.fetchone()[0]
+    yield value
+    conn.rollback()
 
 
 def test_writer_cannot_update_observations(conn):
@@ -45,37 +80,45 @@ def test_writer_cannot_truncate_observations(conn):
     conn.rollback()
 
 
-def test_a_period_cannot_be_described_before_it_ends(conn):
+INSERT = (
+    "INSERT INTO observations (series_id, ref_period_start, ref_period_end,"
+    " vintage_date, value, ingest_run_id) VALUES ('UNRATE',%s,%s,%s,4.0,%s)"
+)
+
+JANUARY = (dt.date(2020, 1, 1), dt.date(2020, 1, 31))
+
+
+def test_a_period_cannot_be_described_before_it_ends(conn, run_id):
     """The CHECK constraint that makes backdating the cheapest fake unavailable."""
     with conn.cursor() as cur, pytest.raises(psycopg.errors.CheckViolation):
-        cur.execute(
-            """
-            INSERT INTO observations
-                (series_id, ref_period_start, ref_period_end, vintage_date,
-                 value, ingest_run_id)
-            VALUES ('UNRATE', %s, %s, %s, 4.0,
-                    (SELECT run_id FROM ingest_runs ORDER BY run_id LIMIT 1))
-            """,
-            (dt.date(2020, 1, 1), dt.date(2020, 1, 31), dt.date(2020, 1, 15)),
-        )
+        cur.execute(INSERT, (*JANUARY, dt.date(2020, 1, 15), run_id))
     conn.rollback()
 
 
-def test_the_same_vintage_cannot_be_appended_twice(conn):
-    """Idempotent ingest: a re-run appends nothing rather than duplicating."""
+def test_the_same_row_is_accepted_once_the_period_has_ended(conn, run_id):
+    """The positive control, without which the test above proves nothing.
+
+    A row rejected for some unrelated reason -- a missing foreign key, a null
+    column -- looks exactly like a row the CHECK caught, and for months one did.
+    So the identical insert is attempted with a vintage date after the period
+    ends, and it must succeed. Only then does the rejection above belong to
+    `CHECK (vintage_date >= ref_period_end)` rather than to anything else.
+    """
     with conn.cursor() as cur:
-        cur.execute(
-            "SELECT series_id, ref_period_start, ref_period_end, vintage_date, value,"
-            " ingest_run_id FROM observations LIMIT 1"
-        )
-        row = cur.fetchone()
-    if row is None:
-        pytest.skip("no observations ingested yet")
+        cur.execute(INSERT, (*JANUARY, dt.date(2020, 2, 7), run_id))
+    conn.rollback()
+
+
+def test_the_same_vintage_cannot_be_appended_twice(conn, run_id):
+    """Idempotent ingest: a re-run appends nothing rather than duplicating.
+
+    Self-sufficient on purpose. This used to read a row back from `observations`
+    and skip when the table was empty -- which is its state whenever these tests
+    run before an ingest, so in CI it skipped rather than tested.
+    """
+    with conn.cursor() as cur:
+        cur.execute(INSERT, (*JANUARY, dt.date(2020, 2, 7), run_id))
 
     with conn.cursor() as cur, pytest.raises(psycopg.errors.UniqueViolation):
-        cur.execute(
-            "INSERT INTO observations (series_id, ref_period_start, ref_period_end,"
-            " vintage_date, value, ingest_run_id) VALUES (%s,%s,%s,%s,%s,%s)",
-            row,
-        )
+        cur.execute(INSERT, (*JANUARY, dt.date(2020, 2, 7), run_id))
     conn.rollback()

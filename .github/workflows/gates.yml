@@ -56,10 +56,21 @@ jobs:
         # These tests skip locally without a DSN. Here the DSN is set, so a skip
         # would mean the guarantee went untested -- which is why -rs and the
         # explicit skip check below both run.
+        #
+        # pipefail is not optional. Without it the pipeline exits with tee's
+        # status, so a failing test does not fail the step. That is not a
+        # hypothetical: on the first CI run it hid a real failure, and the step
+        # went red only because the skip check happened to fire on an unrelated
+        # line. A guard that reports the wrong reason is barely a guard.
         run: |
+          set -o pipefail
           python -m pytest tests/test_append_only.py -v -rs | tee gate.log
-          if grep -qE "skipped|no tests ran" gate.log; then
-            echo "append-only tests did not run; the guarantee is untested"
+          # Anchored to pytest's own "SKIPPED [n] file: reason" lines. The old
+          # pattern matched the word anywhere, including the summary count, so a
+          # test that skips by design was indistinguishable from the DSN being
+          # absent. No test in this file may skip when the DSN is set.
+          if grep -qE "^SKIPPED|no tests ran" gate.log; then
+            echo "append-only tests skipped with a DSN set; the guarantee is untested"
             exit 1
           fi
 

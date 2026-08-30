@@ -30,6 +30,39 @@ decisions that flip.
 
 ---
 
+## The build is red on purpose
+
+[![gates](https://github.com/Muhammad-Haris-3/Hindsight/actions/workflows/gates.yml/badge.svg)](https://github.com/Muhammad-Haris-3/Hindsight/actions/workflows/gates.yml)
+
+**A green badge here would be the bug.** `scripts/run_gates.py` returns the gate
+verdict as its exit status, so a failed gate fails the job. Gate 2 fails.
+Therefore the job is red, and stays red until the validation problem is resolved
+rather than tuned away.
+
+The last run, in full:
+
+```
+tests                            62 passed, 1 skipped
+append-only (against Postgres)   8 passed
+ingest                           65,057 rows across 3,619 vintages
+run gates                        2,197 intervals for UNRATE (from store)
+  [PASS] capture_faithful        0/111,948 failed, worst |diff| 0.0
+  [FAIL] rule_reproduces         3/528 failed, worst |diff| 0.20
+  [FAIL] rule_reproduces_offset  25/528 failed, worst |diff| 0.10
+intervals_from: store
+```
+
+Every step succeeds except the gate itself. The pipeline is working; it is
+reporting a real negative result, which is the thing it was built to be able to
+do. A build that went green here would mean a finding had been computed after
+its own validation failed — the one outcome `PREREGISTRATION.md` exists to make
+impossible.
+
+The three failing months, and why they fail, are in
+[`DECISION_MEMO.md`](DECISION_MEMO.md).
+
+---
+
 ## The problem, in one example
 
 An indicator says a recession began in month *M*. It says so because the
